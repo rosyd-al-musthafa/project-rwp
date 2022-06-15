@@ -1,2 +1,5 @@
-# project-rwp
-Project Rekayasa Web Praktik
+LIBRARY YANG DIGUNAKAN
+- flask
+- mysql-connector-python
+- bcrypt
+- time (built-in module)
