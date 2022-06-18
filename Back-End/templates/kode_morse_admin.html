@@ -24,6 +24,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('riwayat') }}">Riwayat Terjemahan</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('kelola_user') }}">Kelola User</a>
+                </li>
             </ul>
         </div>
         <p class="lead mt-3 me-3">
@@ -37,16 +40,16 @@
             </div>
             <div class="dropdown mb-3 mt-3">
                 <button class="btn btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Latin
+                    Morse
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <li><a class="dropdown-item" href="{{ url_for('terjemahan_kode') }}">Morse</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('terjemahan_kalimat') }}">Latin</a></li>
                 </ul>
             </div>
             <div class="row mb-3 mt-3">
                 <div class="col">
-                    <label for="latin" class="form-label">Latin</label>
-                    <textarea class="form-control" id="latin" rows="3"></textarea>
+                    <label for="kode_morse" class="form-label">Kode Morse</label>
+                    <textarea class="form-control" id="kode_morse" rows="3"></textarea>
                 </div>
                 <div class="col">
                     <label for="terjemahan" class="form-label">Terjemahan</label>
@@ -55,19 +58,21 @@
             </div>
             <div class="row">
                 <div class="col">
-                    <button class="btn btn-info" onclick="terjemah('latin')">Terjemahkan</button>
+                    <button class="btn btn-info" onclick="terjemah('kode_morse')">Terjemahkan</button>
                 </div>
                 <div class="col">
                     <button class="btn btn-info" onclick="salin_teks('terjemahan')">Salin</button>
                 </div>
             </div>
             <div class="row mt-2">
-                <div class="col"></div>
                 <div class="col">
                     <h6>Keterangan:</h5>
                     <h6>\ pemisah karakter</h6>
                     <h6>\\ spasi</h6>
-                    <h6># karakter tidak memiliki kode morse</h6><br>
+                </div>
+                <div class="col">
+                    <h6>Keterangan:</h6>
+                    <h6># kode morse tidak memiliki terjemahan</h6><br>
                 </div>
             </div>
         </div>
@@ -76,18 +81,18 @@
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename = 'js/function.js') }}"></script>
     <script>
-        function terjemah(latin) {
-            var latin = encodeURIComponent(document.getElementById(latin).value);
+        function terjemah(kode_morse) {
+            var kode_morse = encodeURIComponent(document.getElementById(kode_morse).value);
             var username = '{{ session["username"] }}';
             
             $.ajax({
                 type: 'GET',
-                url: 'http://127.0.0.1:5000/terjemah_latin?latin=' + latin + '&username=' + username,
+                url: 'http://127.0.0.1:5000/terjemah_kode?kode=' + kode_morse + '&username=' + username,
                 dataType: 'json',
                 success:
                 function (hasil) {
                     document.getElementById("terjemahan").innerHTML = hasil['terjemahan'];
-                    console.log(hasil['latin']);
+                    console.log(hasil['kode_morse']);
                     console.log(hasil['status']);
                 }
             });

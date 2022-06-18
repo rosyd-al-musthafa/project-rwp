@@ -21,8 +21,14 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('terjemahan_kalimat') }}">Terjemah</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('riwayat') }}">Riwayat Terjemahan</a>
+                </li>
             </ul>
         </div>
+        <p class="lead mt-3 me-3">
+            <button class="btn btn-outline-{{ button['class'] }}" onclick="{{ button['function'] }}">{{ button['teks'] }}</button>
+        </p>
     </nav>
     <div class="border border-5 mx-auto mt-3 position-relative" style="width:1000px; height:100%;">  
         <div class="container bg-dark text-white rounded">     
@@ -70,30 +76,21 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename = 'js/function.js') }}"></script>
     <script>
-        function salin_teks (teks) {
-            navigator.clipboard.writeText(document.getElementById(teks).value);
-
-            $.ajax({
-                type: 'GETT',
-                url: 'http://127.0.0.1:5000/tambah_riwayat?bentuk_awal=(' + document.getElementById('kode_morse').value + ')&terjemahan=(' + document.getElementById('terjemahan').value + ')',
-                success: function (status) {
-                    console.log(status['status']);
-                    }
-            });
-        }
-
         function terjemah(kode_morse) {
             var kode_morse = encodeURIComponent(document.getElementById(kode_morse).value);
+            var username = '{{ session["username"] }}';
             
             $.ajax({
                 type: 'GET',
-                url: 'http://127.0.0.1:5000/terjemah_kode?kode=' + kode_morse,
+                url: 'http://127.0.0.1:5000/terjemah_kode?kode=' + kode_morse + '&username=' + username,
                 dataType: 'json',
                 success:
                 function (hasil) {
                     document.getElementById("terjemahan").innerHTML = hasil['terjemahan'];
                     console.log(hasil['kode_morse']);
+                    console.log(hasil['status']);
                 }
             });
         }

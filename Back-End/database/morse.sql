@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 15 Jun 2022 pada 15.00
+-- Waktu pembuatan: 18 Jun 2022 pada 12.27
 -- Versi server: 10.4.22-MariaDB
 -- Versi PHP: 8.1.1
 
@@ -100,6 +100,7 @@ INSERT INTO `kode_morse` (`Kode`, `Karakter`) VALUES
 
 CREATE TABLE `riwayat` (
   `id` int(11) NOT NULL,
+  `username` varchar(63) NOT NULL,
   `bentuk awal` text NOT NULL,
   `terjemahan` text NOT NULL,
   `waktu` datetime NOT NULL
@@ -156,7 +157,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT untuk tabel `riwayat`
 --
 ALTER TABLE `riwayat`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `user`

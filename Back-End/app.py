@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = '********'
 
-db = connect(host = 'localhost', user = 'root', database = 'morse')
+db = connect(host = 'localhost', user = 'rosyd', password = '123***', database = 'morse')
 
 @app.route('/')
 def main():
@@ -15,7 +15,7 @@ def main():
         page = 'home'
         if session['role'] == 'admin': page += '_admin'
 
-        return render_template(page + '.html', gender = session['gender'])
+        return render_template(page + '.html')
     return redirect(url_for('login'))
 
 @app.route('/info')
@@ -150,16 +150,10 @@ def hapus_user(id):
             return redirect(url_for('kelola_user'))
     return redirect(url_for('login'))
 
-@app.route('/lihat_riwayat')
-def lihat_riwayat():
-    if 'status' in session.keys():
-        if session['status'] and session['role'] == 'admin': return redirect(url_for('kelola_riwayat'))
-    return render_template('riwayat.html')
-
-@app.route('/riwayat')
-def riwayat():
+@app.route('/data_riwayat')
+def data_riwayat():
     csr = db.cursor(dictionary = True)
-    csr.execute('SELECT * FROM riwayat ORDER BY id DESC')
+    csr.execute('SELECT * FROM riwayat WHERE username = %s ORDER BY id DESC', (session['username'],))
     data = jsonify(csr.fetchall())
     csr.close()
 
@@ -168,33 +162,52 @@ def riwayat():
 
     return data
 
-@app.route('/kelola_riwayat')
-def kelola_riwayat():
+@app.route('/riwayat')
+def riwayat():
     if 'status' in session.keys():
-        if session['status'] and session['role'] == 'admin': return render_template('kelola_riwayat.html')
+        page = 'riwayat_terjemahan'
+        if session['role'] == 'admin': page += '_admin'
 
+        return render_template(page + '.html')
     return redirect(url_for('login'))
+
+def tambah_riwayat(username, bentuk_awal, terjemahan):
+    csr = db.cursor()
+    csr.execute('INSERT INTO riwayat (username, `bentuk awal`, terjemahan, waktu) VALUES (%s,%s,%s,%s)', (username, bentuk_awal, terjemahan, strftime('%Y-%m-%d %H:%M:%S')))
+    db.commit()
+    csr.close()
+
+    return True
 
 @app.route('/hapus_riwayat/<int:id>')
 def hapus_riwayat(id):
     if 'status' in session.keys():
-        if session['status'] and session['role'] == 'admin':
-            csr = db.cursor()
-            if not id: csr.execute('DELETE FROM riwayat')
-            else: csr.execute(f'DELETE FROM riwayat WHERE {id = }')
-            db.commit()
-            csr.close()
-            flash('Riwayat berhasil dihapus', 'success')
+        csr = db.cursor()
+        if not id: csr.execute('DELETE FROM riwayat WHERE username = %s', (session['username'],))
+        else: csr.execute('DELETE FROM riwayat WHERE id = %s AND username = %s', (id, session['username']))
+        db.commit()
+        csr.close()
+        flash('Riwayat berhasil dihapus', 'success')
 
-            return redirect(url_for('kelola_riwayat'))
+        return redirect(url_for('riwayat'))
     return redirect(url_for('login'))
 
 @app.route('/latin')
-def terjemahan_kalimat(): return render_template('latin.html')
+def terjemahan_kalimat():
+    button = {}
+    if 'status' in session.keys(): button['class'], button['function'], button['teks'] = 'danger', 'logout("/logout")', 'Logout'
+    else: button['class'], button['function'], button['teks'] = 'info', 'login("/login")', 'Login'
+
+    page = 'latin'
+    if 'status' in session.keys():
+        if session['status'] and session['role'] == 'admin': page += '_admin'
+        
+    return render_template(page + '.html', button = button)
 
 @app.route('/terjemah_latin')
 def terjemah_kalimat():
-    kalimat = request.args.get('latin')
+    data = request.args.get
+    username, kalimat = data('username'), data('latin')
     huruf, kode = [], []
 
     for i in range(len(kalimat)):
@@ -212,25 +225,33 @@ def terjemah_kalimat():
         kode.append(data[0]) if data is not None else kode.append('#')
 
     arti = '\\'.join(kode)
- 
-    hasil = jsonify(dict(latin = kalimat, terjemahan = arti))
+
+    status = tambah_riwayat(username, kalimat, arti) if username else False
+
+    hasil = jsonify(dict(latin = kalimat, terjemahan = arti, status = status))
     hasil.headers.add('Access-Control-Allow-Origin', '*')
     hasil.headers.add('Access-Control-Allow-Methods', 'GET')
-
-    csr = db.cursor()
-    csr.execute('INSERT INTO riwayat (`bentuk awal`, terjemahan, waktu) VALUES (%s, %s, %s)', (kalimat, arti, strftime('%Y-%m-%d %H:%M:%S')))
-    db.commit()
-    csr.close()
 
     return hasil
 
 @app.route('/kode_morse')
-def terjemahan_kode(): return render_template('kode_morse.html')
+def terjemahan_kode():
+    button = {}
+    if 'status' in session.keys(): button['class'], button['function'], button['teks'] = 'danger', 'logout("/logout")', 'Logout'
+    else: button['class'], button['function'], button['teks'] = 'info', 'login("/login")', 'Login'
+
+    page = 'kode_morse'
+    if 'status' in session.keys():
+        if session['status'] and session['role'] == 'admin': page += '_admin'
+        
+    return render_template(page + '.html', button = button)
 
 @app.route('/terjemah_kode')
 def terjemah_kode():
-    morse = request.args.get('kode')
+    data = request.args.get
+    username, morse = data('username'), data('kode')
     cek_kode_morse = morse.replace('.', '').replace('-', '').replace('\\', '')
+
     if  cek_kode_morse == '':
         kode_morse = morse.split('\\')
         kode, huruf = [], []
@@ -253,14 +274,11 @@ def terjemah_kode():
 
     else: arti = 'Gagal menerjemahkan karena terdapat karakter:\n' + ''.join(sorted(set([cek_kode_morse[i] for i in range(len(cek_kode_morse))])))
 
-    hasil = jsonify(dict(kode_morse = '\\'.join(kode_morse), terjemahan = arti))
+    status = tambah_riwayat(username, morse, arti) if username else False
+
+    hasil = jsonify(dict(kode_morse = morse, terjemahan = arti, status = status))
     hasil.headers.add('Access-Control-Allow-Origin', '*')
     hasil.headers.add('Access-Control-Allow-Methods', 'GET')
-
-    csr = db.cursor()
-    csr.execute('INSERT INTO riwayat (`bentuk awal`, terjemahan, waktu) VALUES (%s, %s, %s)', (morse, arti, strftime('%Y-%m-%d %H:%M:%S')))
-    db.commit()
-    csr.close()
 
     return hasil
 

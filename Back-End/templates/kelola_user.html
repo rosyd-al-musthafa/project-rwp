@@ -22,7 +22,7 @@
                     <a class="nav-link" href="{{ url_for('terjemahan_kalimat') }}">Terjemah</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('kelola_riwayat') }}">Riwayat Terjemahan</a>
+                    <a class="nav-link" href="{{ url_for('riwayat') }}">Riwayat Terjemahan</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('kelola_user') }}">Kelola User</a>
@@ -30,7 +30,7 @@
             </ul>
         </div>
         <p class="lead mt-3 me-3">
-            <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
+            <button class="btn btn-outline-danger" onclick="logout(`{{ url_for('logout') }}`)">Logout</button>
         </p>
     </nav>  
     <div class="container pt-2">
@@ -87,11 +87,6 @@
         function hapus (id, username) {
             if (confirm("Anda yakin ingin menghapus data dengan username " + username + " ?")) {
                 location.assign("/hapus_user/" + id);
-            }
-        }
-        function logout() {
-            if (confirm('Apakah anda yakin ingin logout ?')) {
-                location.assign("{{ url_for('logout') }}");
             }
         }
     </script>
