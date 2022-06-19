@@ -5,17 +5,14 @@ from time import strftime
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SECRET_KEY'] = '********'
+app.config['SECRET_KEY'] = '*********'
 
-db = connect(host = 'localhost', user = 'rosyd', password = '123***', database = 'morse')
+db = connect(host = 'localhost', user = 'root', database = 'morse')
 
 @app.route('/')
 def main():
-    if 'status' in session.keys():
-        page = 'home'
-        if session['role'] == 'admin': page += '_admin'
+    if 'status' in session.keys(): return render_template('home.html')
 
-        return render_template(page + '.html')
     return redirect(url_for('login'))
 
 @app.route('/info')
@@ -29,48 +26,51 @@ def info():
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        data = request.form
 
         csr = db.cursor(dictionary = True)
-        csr.execute('SELECT * FROM user WHERE username = %s', (username,))
-        data = csr.fetchone()
+        csr.execute('SELECT * FROM user WHERE username = %s', (data['username'],))
+        data_user = csr.fetchone()
         csr.close()
 
         if data is not None:
-            if checkpw(password.encode('UTF-8'), data['password']):
+            if checkpw(data['password'].encode('UTF-8'), data_user['password']):
+                del data
                 session['status'] = True
-                session['role'] = data['status']
-                session['nama'] = data['nama']
-                session['gender'] = data['gender']
-                session['username'] = data['username']
+                session['role'] = data_user['status']
+                session['nama'] = data_user['nama']
+                session['gender'] = data_user['gender']
+                session['username'] = data_user['username']
+                del data_user
 
                 return redirect(url_for('main'))
             else: flash('Password salah', 'danger')
         else: flash('Username tidak ditemukan', 'danger')
+
         return redirect(url_for('login'))
     
     if 'status' in session.keys(): return redirect(url_for('main'))
+
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Anda berhasil logout', 'warning')
+
     return redirect(url_for('login'))
 
 @app.route('/register', methods = ['POST', 'GET'])
 def register():
     if request.method == 'POST':
-        nama = request.form['nama']
-        gender = request.form['gender']
-        username = request.form['username']
-        password = hashpw(request.form['password'].encode('UTF-8'), gensalt())
+        data = request.form
+        data['password'] = hashpw(data['password'].encode('UTF-8'), gensalt())
 
         csr = db.cursor()
         try:
-            csr.execute('INSERT INTO user (nama, gender, username, password) VALUES (%s, %s, %s, %s)', (nama, gender, username, password))
+            csr.execute('INSERT INTO user (nama, gender, username, password) VALUES (%s, %s, %s, %s)', (data['nama'], data['gender'], data['username'], data['password']))
             db.commit()
+            del data
         except: status = False
         else: status = True
         csr.close()
@@ -79,14 +79,12 @@ def register():
         else: flash('Register gagal', 'danger')
 
         return redirect(url_for('login'))
-
     return render_template('registrasi.html')
 
 @app.route('/kelola_user')
 def kelola_user():
     if 'status' in session.keys():
-        if session['status'] and session['role'] == 'admin':
-            return render_template('kelola_user.html')
+        if session['status'] and session['role'] == 'admin': return render_template('kelola_user.html')
 
     return redirect(url_for('login'))
 
@@ -112,14 +110,13 @@ def update_user(id):
     if 'status' in session.keys():
         if session['status'] and session['role'] == 'admin':
             if request.method == 'POST':
-                nama = request.form['nama']
-                gender = request.form['gender']
-                username = request.form['username']
+                data = request.form
 
                 csr = db.cursor()
                 try:
-                    csr.execute('UPDATE user SET nama = %s, gender = %s, username = %s WHERE id = %s', (nama, gender, username, id))
+                    csr.execute('UPDATE user SET nama = %s, gender = %s, username = %s WHERE id = %s', (data['nama'], data['gender'], data['username'], id))
                     db.commit()
+                    del data
                 except: status = False
                 else: status = True
                 csr.close()
@@ -164,11 +161,8 @@ def data_riwayat():
 
 @app.route('/riwayat')
 def riwayat():
-    if 'status' in session.keys():
-        page = 'riwayat_terjemahan'
-        if session['role'] == 'admin': page += '_admin'
+    if 'status' in session.keys(): return render_template('riwayat_terjemahan.html')
 
-        return render_template(page + '.html')
     return redirect(url_for('login'))
 
 def tambah_riwayat(username, bentuk_awal, terjemahan):
@@ -197,12 +191,8 @@ def terjemahan_kalimat():
     button = {}
     if 'status' in session.keys(): button['class'], button['function'], button['teks'] = 'danger', 'logout("/logout")', 'Logout'
     else: button['class'], button['function'], button['teks'] = 'info', 'login("/login")', 'Login'
-
-    page = 'latin'
-    if 'status' in session.keys():
-        if session['status'] and session['role'] == 'admin': page += '_admin'
-        
-    return render_template(page + '.html', button = button)
+    
+    return render_template('latin.html', button = button)
 
 @app.route('/terjemah_latin')
 def terjemah_kalimat():
@@ -239,12 +229,8 @@ def terjemahan_kode():
     button = {}
     if 'status' in session.keys(): button['class'], button['function'], button['teks'] = 'danger', 'logout("/logout")', 'Logout'
     else: button['class'], button['function'], button['teks'] = 'info', 'login("/login")', 'Login'
-
-    page = 'kode_morse'
-    if 'status' in session.keys():
-        if session['status'] and session['role'] == 'admin': page += '_admin'
-        
-    return render_template(page + '.html', button = button)
+   
+    return render_template('kode_morse.html', button = button)
 
 @app.route('/terjemah_kode')
 def terjemah_kode():
@@ -299,4 +285,6 @@ def api():
     
     return api
     
-if __name__ == '__main__': app.run()
+if __name__ == '__main__':
+    app.run()
+    db.close()
