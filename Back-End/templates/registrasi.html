@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrasi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body>
+    <div class="border border-5 mx-auto mt-3 position-static" style="width:400px; height: 200px;">
+        <div class="container bg-dark text-white rounded position-relative pt-2 pb-2"> 
+            <div class="mb-3 col" style="text-align: center;">
+                <h3>Register</h3>
+            </div>
+            <form class="login-form" action="{{ url_for('register') }}" method="post">
+                <div class="mb-3">
+                    <input type="text" placeholder="Masukkan Nama Lengkap" name="nama" class="form-control" required/>
+                </div>
+                <div class="mb-3">
+                    <select class="form-select" name="gender">
+                        <option value="0">--Pilih Gender--</option>
+                        <option value="L">Laki-Laki</option>
+                        <option value="P">Perempuan</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <input type="text" placeholder="Masukkan Username" name="username" class="form-control" required/>
+                </div>
+                <div class="mb-3">
+                    <input type="password" placeholder="Masukkan Password" name="password" class="form-control" required/>
+                </div>
+                <div class="mb-3" style="padding: 10px; text-align: center;">            
+                    <button type="submit" class="btn btn-primary" style="width: 150px;">Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</body>
+</html>
