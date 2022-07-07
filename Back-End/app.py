@@ -29,7 +29,7 @@ def login():
         data = request.form
 
         csr = db.cursor(dictionary = True)
-        csr.execute('SELECT * FROM user WHERE username = %s', (data['username'],))
+        csr.execute('SELECT * FROM user WHERE username = %s LIMIT 1', (data['username'],))
         data_user = csr.fetchone()
         csr.close()
 
@@ -62,6 +62,7 @@ def logout():
 
 @app.route('/register', methods = ['POST', 'GET'])
 def register():
+    session.clear()
     if request.method == 'POST':
         data = request.form
         data['password'] = hashpw(data['password'].encode('UTF-8'), gensalt())
@@ -93,7 +94,7 @@ def read_user():
     if 'status' in session.keys():
         if session['status'] and session['role'] == 'admin':
             csr = db.cursor(dictionary = True)
-            csr.execute("SELECT id, nama, gender, username FROM user WHERE status = 'client'")
+            csr.execute("SELECT id, nama, gender, username FROM user WHERE status = 'client' AND status != 'admin'")
             data = csr.fetchall()
             for data0 in data: data0['gender'] = 'Laki-laki' if data0['gender'] == 'L' else 'Perempuan'
             data = jsonify(data)
@@ -127,7 +128,7 @@ def update_user(id):
                 return redirect(url_for('kelola_user'))
 
             csr = db.cursor(dictionary = True)
-            csr.execute("SELECT nama, gender, username FROM user WHERE id = %s", (id,))
+            csr.execute("SELECT nama, gender, username FROM user WHERE id = %s LIMIT 1", (id,))
             data = csr.fetchone()
             csr.close()
 
@@ -139,7 +140,7 @@ def hapus_user(id):
     if 'status' in session.keys():
         if session['status'] and session['role'] == 'admin':
             csr = db.cursor()
-            csr.execute(f'DELETE FROM user WHERE id = {id}')
+            csr.execute(f"DELETE FROM user WHERE id = {id} AND status = 'client' AND status != 'admin'")
             db.commit()
             csr.close()
             flash('Data user berhasil dihapus', 'success')
@@ -203,16 +204,16 @@ def terjemah_kalimat():
     for i in range(len(kalimat)):
         huruf.append(kalimat[i])
 
+    csr = db.cursor()
     for i in huruf:
         if i == ' ':
             kode.append('')
             continue
 
-        csr = db.cursor()
-        csr.execute('SELECT Kode FROM kode_morse WHERE Karakter = %s', (i,))
+        csr.execute('SELECT Kode FROM kode_morse WHERE Karakter = %s LIMIT 1', (i,))
         data = csr.fetchone()
-        csr.close()
         kode.append(data[0]) if data is not None else kode.append('#')
+    csr.close()
 
     arti = '\\'.join(kode)
 
@@ -245,16 +246,16 @@ def terjemah_kode():
         for i in kode_morse:
             kode.append(i)
         
+        csr = db.cursor()
         for i in kode:
             if i == '':
                 huruf.append(' ')
                 continue
             
-            csr = db.cursor()
-            csr.execute('SELECT Karakter FROM kode_morse WHERE Kode = %s', (i,))
+            csr.execute('SELECT Karakter FROM kode_morse WHERE Kode = %s LIMIT 1', (i,))
             data = csr.fetchone()
             huruf.append(data[0]) if data is not None else huruf.append('#')
-            csr.close()
+        csr.close()
         
         arti = ''.join(huruf)
 

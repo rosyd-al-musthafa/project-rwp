@@ -1,4 +1,4 @@
-LIBRARY YANG DIGUNAKAN
+# LIBRARY YANG DIGUNAKAN
 - flask
 - mysql-connector-python
 - bcrypt

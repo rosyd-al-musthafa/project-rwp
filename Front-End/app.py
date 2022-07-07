@@ -21,16 +21,16 @@ def terjemah_kalimat():
     for i in range(len(kalimat)):
         huruf.append(kalimat[i])
 
+    csr = db.cursor()
     for i in huruf:
         if i == ' ':
             kode.append('')
             continue
 
-        csr = db.cursor()
-        csr.execute('SELECT Kode FROM kode_morse WHERE Karakter = %s', (i,))
+        csr.execute('SELECT Kode FROM kode_morse WHERE Karakter = %s LIMIT 1', (i,))
         data = csr.fetchone()
         kode.append(data[0]) if data is not None else kode.append('#')
-        csr.close()
+    csr.close()
 
     arti = '\\'.join(kode)
  
@@ -51,16 +51,16 @@ def terjemah_kode():
         for i in kode_morse:
             kode.append(i)
         
+        csr = db.cursor()
         for i in kode:
             if i == '':
                 huruf.append(' ')
                 continue
             
-            csr = db.cursor()
-            csr.execute('SELECT Karakter FROM kode_morse WHERE Kode = %s', (i,))
+            csr.execute('SELECT Karakter FROM kode_morse WHERE Kode = %s LIMIT 1', (i,))
             data = csr.fetchone()
             huruf.append(data[0]) if data is not None else huruf.append('#')
-            csr.close()
+        csr.close()
         
         arti = ''.join(huruf)
 
